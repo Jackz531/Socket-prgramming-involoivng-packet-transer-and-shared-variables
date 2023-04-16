@@ -1,0 +1,158 @@
+Pseudo code for the client ->
+
+// Primarily for sending packets
+
+Declare a structure packet which contains:
+	type,
+	sequence_number,
+	payload character array of size 1024,
+	checksum(integer)
+
+
+function error(message):
+	prints the message in the console
+
+
+function find_checksum(packet):
+	Initialize checksum to 0
+	for i in range from 0 to 1023
+		xor the ith bit in packet.payload and store in checksum
+	
+	return checksum
+
+
+function send_packet1():
+
+	open socket without any errors
+	
+	declare pk which is a variable of packet
+	initialize i to 0
+	give a infinite while loop
+		increment i
+		pk.type = 1
+		pk.sequence_number = i
+		make a random payload for pk randomly filling locations with either 0 or 1
+		create checksum for pk using find_checksum
+			
+		make a delay of 100 ms
+		send packet pk to server using sendto()
+		check for errors while sending
+		print pk packet details in the terminal
+	close the socket
+
+
+function send_packet2():
+
+	open socket without any errors
+	
+	declare pk which is a variable of packet
+	initialize i to 0
+	give a infinite while loop
+		increment i
+		pk.type = 2
+		pk.sequence_number = i
+		make a random payload for pk randomly filling locations with either 0 or 1
+		create checksum for pk using find_checksum
+			
+		make a delay of 100 ms
+		send packet pk to server using sendto()
+		check for errors while sending
+		print pk packet details in the terminal
+	close the socket
+
+	
+main function:
+	
+	create a socket variable sockfd(UDP)
+	create 2 threads using pthread_create()
+	
+	Initial function of 1st thread -> send_packet1
+	Initial function of 2nd thread -> send_packet2
+
+	return 0
+
+
+Pseudo code for the server ->
+
+
+Declare a structure packet which contains:
+	type,
+	sequence_number,
+	payload character array of size 1024,
+	checksum(integer)
+
+declare buffer1, buffer2 of type packet
+initialise buffer_size1, buffer_size2 with 0
+Initialise a mutex variable named 'mutex'
+
+function find_checksum(packet):
+	Initialise checksum to 0
+	for i in range from 0 to 1023
+		xor the ith bit in packet.payload and store in checksum
+	
+	return checksum
+
+
+Initialise count1, count2 with 0
+
+function process_type1():
+	Infinite while loop:
+		lock mutex
+		while buffer_size1 is not empty:
+			Display the details of 1st element of buffer1
+			Delete the 1st element of buffer1
+			decrement buffer_size1 by 1
+			increment count1 by 1
+		unlock mutex
+
+function process_type2():
+	Infinite while loop:
+		lock mutex
+		while buffer_size2 is not empty:
+			Display the details of 1st element of buffer2
+			Delete the 1st element of buffer2
+			decrement buffer_size2 by 1
+			increment count2 by 1
+		unlock mutex
+		
+function print_no():
+	Infinite while loop:
+		lock mutex
+		Display the number of type1 and type2 packets effectively sent
+		unlock mutex
+		delay execution for 300 ms
+
+
+function check_error():
+	open socket without any errors
+	
+	Infinite while loop:
+		declare pk which is a variable of packet
+		receive the packet send from the client using recvfrom()
+		if pk.checksum not equal to make_checksum(pk):
+			print the error message
+		else:
+			lock mutex
+			if pk.type equal to 1:
+				add pk to buffer1
+			else if pk.type equal to 2:
+				add pk to buffer2
+			unlock mutex
+	close the socket
+
+
+main function:
+
+	create a socket variable sockfd(UDP)
+	
+	create 4 threads using pthread_create()
+	
+	Initial function of 1st thread -> check_error
+	Initial function of 2nd thread -> process_type1
+	Initial function of 3rd thread -> process_type2
+	Initial function of 4th thread -> print_no
+
+	return 0
+
+		
+	
